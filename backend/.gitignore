@@ -7,5 +7,4 @@ prisma/dev*
 .env
 .DS_Store
 .vscode/
-package-lock.json
 coverage/

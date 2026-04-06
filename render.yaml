@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: csc309-a3-backend
+    env: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm ci && npx prisma generate && npx prisma db push && npm run seed
+    startCommand: node src/server.js $PORT
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        sync: false
+
+  - type: web
+    name: csc309-a3-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    autoDeploy: true
+    envVars:
+      - key: VITE_API_BASE
+        sync: false

@@ -1,6 +1,128 @@
-# This text file should explain how to deploy your website.
+A3 INSTALL GUIDE
 
-# You should write detailed description on:
+Current public deployment (for this submission attempt)
+- Frontend URL: https://eb9bef96b421e8.lhr.life
+- Backend URL: https://4bf2a0ae942fd3.lhr.life
+- Note: these are SSH reverse tunnels and may expire if the host process stops.
 
-# 1. All the packages you need to install
-# 2. How to configure various servers (e.g., Nginx, Apache, etc)
+Environment used
+- OS: Ubuntu 24.04 LTS (or similar Linux VM)
+- Node.js: 20.x LTS
+- npm: bundled with Node
+- Web server: Nginx
+
+Project layout
+- backend/: Express + Prisma + SQLite API server
+- frontend/: Vite React app
+
+1. Required packages
+- nodejs
+- npm
+- nginx
+
+Ubuntu example
+- sudo apt update
+- sudo apt install -y nodejs npm nginx
+
+2. Backend setup
+- cd A3/backend
+- npm install
+- npx prisma generate
+- npx prisma db push
+- npm run seed
+
+Run backend locally (example port 3000)
+- node src/server.js 3000
+
+Notes
+- Seeded credentials use password: 123123
+- Seed script creates required testing data for regular users, businesses, admins, position types, jobs, qualifications, interests, and negotiations.
+
+3. Frontend setup
+- cd A3/frontend
+- npm install
+
+For local development (default Vite port 5173)
+- npm run dev
+
+Optional API base override
+- create file: frontend/.env
+- set: VITE_API_BASE=http://localhost:3000
+
+4. Production build and serving
+
+Frontend build
+- cd A3/frontend
+- npm run build
+
+This creates static files in frontend/dist.
+
+Backend production run
+- cd A3/backend
+- node src/server.js 3000
+
+5. Nginx reverse proxy + static hosting (single machine)
+
+Example Nginx server block
+
+server {
+	listen 80;
+	server_name your-domain-or-ip;
+
+	root /absolute/path/to/A3/frontend/dist;
+	index index.html;
+
+	location / {
+		try_files $uri /index.html;
+	}
+
+	location /api/ {
+		proxy_pass http://127.0.0.1:3000/;
+		proxy_http_version 1.1;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	}
+}
+
+If using /api prefix in Nginx, set frontend API base accordingly:
+- VITE_API_BASE=http://your-domain-or-ip/api
+
+Enable Nginx config and reload
+- sudo ln -s /etc/nginx/sites-available/your-site /etc/nginx/sites-enabled/your-site
+- sudo nginx -t
+- sudo systemctl reload nginx
+
+6. CORS
+- Backend CORS is configured in backend/src/app.js.
+- Default allowed frontend origin: http://localhost:5173
+- Override via env variable: CORS_ORIGIN
+
+7. Submission/deployment notes
+- The SQLite DB and uploaded files are local and can be wiped on redeploy/restart on many PaaS platforms.
+- WEBSITE file must contain only the public URL to the deployed site.
+- For a stable long-lived URL, deploy backend/frontend to a persistent host (for example Render/Railway/Fly/VM + Nginx).
+
+8. Stable deployment via Render (persistent URL)
+
+This repository now includes `A3/render.yaml` with two services:
+- `csc309-a3-backend` (Node web service)
+- `csc309-a3-frontend` (static site)
+
+One-time setup in Render dashboard
+1. Create a new Blueprint deployment from this repo using `A3/render.yaml`.
+2. Wait for first deploy to finish.
+3. Copy backend URL from Render, for example: `https://csc309-a3-backend.onrender.com`
+4. Set frontend env var:
+	- `VITE_API_BASE=https://csc309-a3-backend.onrender.com`
+5. Redeploy frontend.
+6. Copy frontend URL from Render, for example: `https://csc309-a3-frontend.onrender.com`
+7. Set backend env var:
+	- `CORS_ORIGIN=https://csc309-a3-frontend.onrender.com`
+8. Redeploy backend.
+9. Update `A3/WEBSITE` so it contains only the frontend Render URL.
+
+Notes
+- Free plans can sleep after inactivity.
+- On restart/redeploy, SQLite data may reset depending on Render instance lifecycle.
+- If you need persistent database state, switch to managed Postgres and update Prisma datasource.
