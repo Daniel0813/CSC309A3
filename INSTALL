@@ -1,9 +1,9 @@
 A3 INSTALL GUIDE
 
 Current public deployment (for this submission attempt)
-- Frontend URL: https://eb9bef96b421e8.lhr.life
-- Backend URL: https://4bf2a0ae942fd3.lhr.life
-- Note: these are SSH reverse tunnels and may expire if the host process stops.
+- Frontend URL: https://csc309-a3-frontend.onrender.com/
+- Backend URL: https://csc309-a3-backend.onrender.com
+- Note: hosted on Render (persistent deployment), free-tier cold starts may still occur.
 
 Environment used
 - OS: Ubuntu 24.04 LTS (or similar Linux VM)
